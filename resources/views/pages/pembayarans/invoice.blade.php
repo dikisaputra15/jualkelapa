@@ -1,123 +1,157 @@
 @extends('layouts.app')
 
-@section('title', 'Invoice')
+@section('title', 'Cetak Struk')
 
 @section('main')
 
-<div class="container-fluid">
+<style>
+.receipt {
+    width: 300px;
+    margin: auto;
+    background: #fff;
+    padding: 10px;
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    color: #000;
+}
 
-    <div class="card shadow">
-        <div class="card-body">
+.receipt-header {
+    text-align: center;
+}
 
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <h2 class="font-weight-bold">
-                        INVOICE
-                    </h2>
+.separator {
+    border-top: 1px dashed #000;
+    margin: 8px 0;
+}
 
-                    <p class="mb-1">
-                        <strong>No Pesanan :</strong>
-                        {{ $pesanan->kode_pesanan }}
-                    </p>
+.item-row {
+    margin-bottom: 8px;
+}
 
-                    <p class="mb-1">
-                        <strong>Tanggal :</strong>
-                        {{ $pesanan->tgl_pemesanan }}
-                    </p>
-                </div>
+.item-name {
+    font-weight: bold;
+}
 
-                <div class="col-md-6 text-right">
-                    <h5>Data Pembeli</h5>
+.item-detail {
+    display: flex;
+    justify-content: space-between;
+}
 
-                    <p class="mb-1">
-                        {{ $pesanan->nama_pembeli }}
-                    </p>
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 14px;
+}
 
-                    <p class="mb-1">
-                        Metode Pembayaran :
-                        {{ $pesanan->metode_pembayaran }}
-                    </p>
+.text-center {
+    text-align: center;
+}
 
-                    <p class="mb-1">
-                        Status :
-                        <span class="badge badge-success">
-                            {{ $pesanan->status_pembayaran }}
-                        </span>
-                    </p>
-                </div>
+@media print {
+
+    body * {
+        visibility: hidden;
+    }
+
+    .receipt,
+    .receipt * {
+        visibility: visible;
+    }
+
+    .receipt {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}
+</style>
+
+<div class="container">
+
+    <div class="receipt">
+
+        <div class="receipt-header">
+            <h4 style="margin:0;">ANEKA KELAPA</h4>
+            <small>Terima Kasih Telah Berbelanja</small>
+        </div>
+
+        <div class="separator"></div>
+
+        <div>
+            No : {{ $pesanan->kode_pesanan }}<br>
+            Tgl : {{ date('d/m/Y H:i', strtotime($pesanan->tgl_pemesanan)) }}<br>
+            Cust : {{ $pesanan->nama_pembeli }}
+        </div>
+
+        <div class="separator"></div>
+
+        @foreach($detailPesanan as $detail)
+
+        <div class="item-row">
+
+            <div class="item-name">
+                {{ $detail->nama_produk }}
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-bordered">
+            <div class="item-detail">
+                <span>
+                    {{ $detail->qty }} x
+                    {{ number_format($detail->harga,0,',','.') }}
+                </span>
 
-                    <thead class="thead-light">
-                        <tr>
-                            <th width="5%">No</th>
-                            <th>Produk</th>
-                            <th width="15%">Harga</th>
-                            <th width="10%">Qty</th>
-                            <th width="20%">Subtotal</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        @php
-                            $grandTotal = 0;
-                        @endphp
-
-                        @foreach($detailPesanan as $detail)
-
-                        @php
-                            $grandTotal += $detail->subtotal;
-                        @endphp
-
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-
-                            <td>{{ $detail->nama_produk }}</td>
-
-                            <td>
-                                Rp {{ number_format($detail->harga,0,',','.') }}
-                            </td>
-
-                            <td>{{ $detail->qty }}</td>
-
-                            <td>
-                                Rp {{ number_format($detail->subtotal,0,',','.') }}
-                            </td>
-                        </tr>
-
-                        @endforeach
-
-                    </tbody>
-
-                    <tfoot>
-                        <tr>
-                            <th colspan="4" class="text-right">Total</th>
-                            <th>
-                                Rp {{ number_format($pesanan->total_harga,0,',','.') }}
-                            </th>
-                        </tr>
-                    </tfoot>
-
-                </table>
-            </div>
-
-            <div class="mt-4">
-                <button onclick="window.print()"
-                    class="btn btn-primary">
-                    <i class="fas fa-print"></i>
-                    Cetak Invoice
-                </button>
-
-                <a href="{{ url('/allpesanan') }}"
-                    class="btn btn-secondary">
-                    Kembali
-                </a>
+                <span>
+                    {{ number_format($detail->subtotal,0,',','.') }}
+                </span>
             </div>
 
         </div>
+
+        @endforeach
+
+        <div class="separator"></div>
+
+        <div class="total-row">
+            <span>TOTAL</span>
+            <span>
+                Rp {{ number_format($pesanan->total_harga,0,',','.') }}
+            </span>
+        </div>
+
+        <div class="separator"></div>
+
+        <div>
+            Metode : {{ $pesanan->metode_pembayaran }}<br>
+            Status : {{ $pesanan->status_pembayaran }}
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="text-center">
+            *** TERIMA KASIH ***<br>
+            Barang yang sudah dibeli<br>
+            tidak dapat ditukar/dikembalikan
+        </div>
+
+    </div>
+
+    <div class="text-center mt-3 no-print">
+
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="fas fa-print"></i>
+            Cetak Struk
+        </button>
+
+        <a href="{{ url('/allpesanan') }}"
+            class="btn btn-secondary">
+            Kembali
+        </a>
+
     </div>
 
 </div>
